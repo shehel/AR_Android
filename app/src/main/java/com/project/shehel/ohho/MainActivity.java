@@ -114,9 +114,8 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         mRgba = inputFrame.rgba();
-
-        if (check) {
-            return mGrey;
+        if (!check) {
+            mGrey = inputFrame.rgba();
         }
 
         return mRgba;
@@ -125,7 +124,10 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     //Feature match when button is clicked
 
     public void detectButtonClick(View v) {
-        detectFeatures(mRgba.getNativeObjAddr(), mGrey.getNativeObjAddr());
+
+        TextView tv = (TextView) findViewById(R.id.textView2);
+        if (check)
+            tv.setText(String.valueOf(detectFeatures(mRgba.getNativeObjAddr(), mGrey.getNativeObjAddr())));
         check = true;
     }
 }
