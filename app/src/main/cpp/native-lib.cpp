@@ -13,17 +13,7 @@ using namespace std;
 //Variable Declarations
 Ptr<ORB> orb;
 BFMatcher matcher(NORM_HAMMING);
-std::vector<cv::KeyPoint> keypointsCaptured;
-std::vector<cv::KeyPoint> keypointsTarget;
 
-cv::Mat descriptorsCaptured;
-cv::Mat descriptorsTarget;
-
-std::vector<cv::DMatch> matches;
-std::vector<cv::DMatch> symMatches;
-
-std::vector<std::vector<cv::DMatch> > matches1;
-std::vector<std::vector<cv::DMatch> > matches2;
 
 float ratio = 0.95f;
 bool refineF = false;
@@ -56,7 +46,8 @@ void symmetryTest(
         const std::vector<std::vector<cv::DMatch> >& matches1,
         const std::vector<std::vector<cv::DMatch> >& matches2,
         std::vector<cv::DMatch>& symMatches) {
-
+    //__android_log_print(ANDROID_LOG_INFO, "sometag", "Got to push");
+    int count = 0;
     // for all matches image 1 -> image 2
     for (std::vector<std::vector<cv::DMatch> >::
          const_iterator matchIterator1= matches1.begin();
@@ -79,8 +70,7 @@ void symmetryTest(
                 (*matchIterator2)[0].queryIdx ==
                 (*matchIterator1)[0].trainIdx) {
 
-
-
+                count++;
                 // add symmetrical match
                 symMatches.push_back(
                         cv::DMatch((*matchIterator1)[0].queryIdx,
@@ -90,9 +80,8 @@ void symmetryTest(
             }
         }
     }
-    int foo = 1;
-    __android_log_print(ANDROID_LOG_INFO, "sometag", "JESUS = %d", matches1.size());
-    __android_log_print(ANDROID_LOG_INFO, "sometag", "JESUS2 = %d", matches2.size());
+
+    __android_log_print(ANDROID_LOG_INFO, "sometag", "Count of sym push = %d", count);
 
 }
 cv::Mat ransacTest(
@@ -164,12 +153,35 @@ cv::Mat ransacTest(
     }
     return fundemental;
 }
-void toGray(Mat& capturedR, Mat& targetR) {
-    std::vector<cv::DMatch> *matchesClear = &matches;
-    matchesClear = NULL;
-    Mat captured, target;
-    cvtColor(capturedR, captured, CV_RGBA2GRAY);
-    cvtColor(targetR, target, CV_RGBA2GRAY);
+int toGray(Mat& captured, Mat& target) {
+    std::vector<cv::KeyPoint> keypointsCaptured;
+    std::vector<cv::KeyPoint> keypointsTarget;
+
+    cv::Mat descriptorsCaptured;
+    cv::Mat descriptorsTarget;
+    //cv::Mat target;
+    std::vector<cv::DMatch> matches;
+    std::vector<cv::DMatch> symMatches;
+
+    //std::vector<std::vector<cv::DMatch> > matches1;
+    //std::vector<std::vector<cv::DMatch> > matches2;
+    //Mat captured, target;
+    /*captured = imread("/storage/emulated/0/data/img1.jpg", IMREAD_GRAYSCALE);
+    target = imread("/storage/emulated/0/data/img3.jpg", IMREAD_GRAYSCALE);
+    if (!captured.data) {
+        // Print error message and quit
+        __android_log_print(ANDROID_LOG_INFO, "sometag", "I cant do this.");
+
+    }
+    if (!target.data) {
+        // Print error message and quit
+        __android_log_print(ANDROID_LOG_INFO, "sometag", "cant do nuthin.");
+
+
+    }*/
+    //cvtColor(capturedR, captured, CV_RGBA2GRAY);
+    //cvtColor(targetR, target, CV_RGBA2GRAY);
+
 
     orb = ORB::create();
 
@@ -182,30 +194,27 @@ void toGray(Mat& capturedR, Mat& targetR) {
 
     orb->detectAndCompute(captured, noArray(), keypointsCaptured, descriptorsCaptured);
     orb->detectAndCompute(target, noArray(), keypointsTarget, descriptorsTarget);
-    __android_log_print(ANDROID_LOG_INFO, "sometag", "keypoints2 size = %d", keypointsTarget.size());
-    __android_log_print(ANDROID_LOG_INFO, "sometag", "keypoints size = %d", keypointsCaptured.size());
+    //__android_log_print(ANDROID_LOG_INFO, "sometag", "keypoints2 size = %d", keypointsTarget.size());
+    //__android_log_print(ANDROID_LOG_INFO, "sometag", "keypoints size = %d", keypointsCaptured.size());
 
     //Match images based on k nearest neighbour
     std::vector<std::vector<cv::DMatch> > matches1;
     matcher.knnMatch(descriptorsCaptured , descriptorsTarget,
                      matches1, 2);
-    __android_log_print(ANDROID_LOG_INFO, "sometag", "Matches1 = %d",     matches1.size());
+    //__android_log_print(ANDROID_LOG_INFO, "sometag", "Matches1 = %d",     matches1.size());
     std::vector<std::vector<cv::DMatch> > matches2;
     matcher.knnMatch(descriptorsTarget , descriptorsCaptured,
                      matches2, 2);
-    __android_log_print(ANDROID_LOG_INFO, "sometag", "Matches2 = %d",     matches2.size());
-
-    //Ratio filter
+   //Ratio filter
     ratioTest(matches1);
     ratioTest(matches2);
-
     symmetryTest(matches1,matches2,symMatches);
-    int foo = symMatches.size();
-    __android_log_print(ANDROID_LOG_INFO, "sometag", "Sym Matches = %d", foo);
     ransacTest(symMatches,
                keypointsCaptured, keypointsTarget, matches);
-    __android_log_print(ANDROID_LOG_INFO, "sometag", "Sym Matches = %d", matches.size());
-    }
+    __android_log_print(ANDROID_LOG_INFO, "sometag", "Sym Matches = %d", symMatches.size());
+    __android_log_print(ANDROID_LOG_INFO, "sometag", "Matches = %d", matches.size());
+    return (matches.size());
+}
 
 
 
@@ -215,14 +224,14 @@ Java_com_project_shehel_ohho_MainActivity_detectFeatures(
         JNIEnv *env,
         jobject instance, jlong addrRgba, jlong addrGray /* this */) {
     Mat &mRgb = *(Mat *) addrRgba;
-    Mat &mGray = *(Mat *) addrRgba;
+    Mat &mGray = *(Mat *) addrGray;
 
 
     //int conv;
     jint retVal;
     //conv =
-    toGray(mRgb, mGray);
-    int conv = matches.size();
+
+    int conv = toGray(mRgb, mGray);
 
 
     retVal = (jint) conv;
