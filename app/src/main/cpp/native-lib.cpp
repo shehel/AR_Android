@@ -159,7 +159,7 @@ int toGray(Mat& captured, Mat& target) {
 
     cv::Mat descriptorsCaptured;
     cv::Mat descriptorsTarget;
-    //cv::Mat target;
+    //cv::Mat captured;
     std::vector<cv::DMatch> matches;
     std::vector<cv::DMatch> symMatches;
 

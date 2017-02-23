@@ -17,6 +17,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -27,9 +28,11 @@ import org.opencv.android.JavaCameraView;
 import org.opencv.android.LoaderCallbackInterface;
 import org.opencv.android.OpenCVLoader;
 import org.opencv.android.Utils;
+import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.imgcodecs.Imgcodecs;
+import org.opencv.imgproc.Imgproc;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -37,12 +40,15 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Collections;
 
 import static java.lang.Integer.valueOf;
+import static java.util.Arrays.sort;
 import static org.opencv.imgcodecs.Imgcodecs.CV_LOAD_IMAGE_COLOR;
 import static org.opencv.imgcodecs.Imgcodecs.CV_LOAD_IMAGE_GRAYSCALE;
 import static org.opencv.imgcodecs.Imgcodecs.IMREAD_GRAYSCALE;
 import static org.opencv.imgcodecs.Imgcodecs.imread;
+import static org.opencv.imgcodecs.Imgcodecs.imwrite;
 
 public class MainActivity extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
 
@@ -59,10 +65,12 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     private double latitude;
 
     private static String TAG = "MainActivity";
+    Location loc;
 
     //Camera frame
     Mat mRgba;
-    Mat mGrey;
+    Mat mRgbaF;
+    Mat mRgbaT;
     boolean check = false;
     JavaCameraView javaCameraView;
     BaseLoaderCallback mLoaderCallback = new BaseLoaderCallback(this) {
@@ -86,6 +94,10 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        //getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
+          //      WindowManager.LayoutParams.FLAG_FULLSCREEN);
+
         setContentView(R.layout.activity_main);
 
         javaCameraView = (JavaCameraView) findViewById(R.id.java_camera_view);
@@ -94,13 +106,13 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         // Example of a call to a native method
         //TextView tv = (TextView) findViewById(R.id.sample_text);
         //tv.setText(stringFromJNI());
-
         locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
         locationListener = new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
                 longitude = location.getLongitude();
                 latitude = location.getLatitude();
+                loc = location;
             }
 
             @Override
@@ -181,7 +193,9 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     @Override
     public void onCameraViewStarted(int width, int height) {
         mRgba = new Mat(height, width, CvType.CV_8UC4);
-        mGrey= new Mat(height, width, CvType.CV_8UC1);
+        mRgbaF = new Mat(height, width, CvType.CV_8UC4);
+        mRgbaT = new Mat(width, width, CvType.CV_8UC4);
+
     }
 
     @Override
@@ -192,25 +206,27 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         mRgba = inputFrame.rgba();
-        if (!check) {
-            mGrey = inputFrame.rgba();
-        }
-        return mRgba;
+        // Rotate mRgba 90 degrees
+
+
+
+        return mRgba; // This function must return
     }
 
     public void traverse (File dir) {
-
+        Location targetLoc = new Location("Dummy");
         if (dir.exists()) {
 
             File[] files = dir.listFiles();
+            sort(files);
             for (int i = 0; i < files.length; ++i) {
                 File file = files[i];
 
                 if (file.isDirectory()) {
                     traverse(file);
                 } else {
+                    Log.i(TAG, "reading" + file.getAbsolutePath());
                     if (file.getName().matches("data")) {
-                        Log.i(TAG, "trying to read" + file.getAbsolutePath());
 
                         //Reading text from file
                         double xlongitude = 0;
@@ -232,18 +248,58 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
                                 first = true;
                             }
                             br.close();
-                            float distanceInMeters = loc1.distanceTo(loc2);
-                            Log.i(TAG, "Gotcha" + xlongitude + " ,"+xlatitude);
+                            targetLoc.setLatitude(xlatitude);
+                            targetLoc.setLongitude(xlongitude);
+                            float distanceInMeters = loc.distanceTo(targetLoc);
+                            Log.i(TAG, "Gotcha" + xlongitude + " ,"+xlatitude+" Distance"+distanceInMeters);
+                            if (distanceInMeters > 500) {
+                                break;
+                            }
 
                         } catch (IOException e) {
 
                         }
+                    } else {
+                        Mat target = Imgcodecs.imread(file.getAbsolutePath(), Imgcodecs.CV_LOAD_IMAGE_GRAYSCALE);
+                        //Mat target2 = Imgcodecs.imread(file.getAbsolutePath(), Imgcodecs.CV_LOAD_IMAGE_GRAYSCALE);
+
+                        if (target.empty()) {
+                            if (target.empty()) Log.i(TAG, "failledd" + file.getAbsolutePath());
+                        }
+
+                        TextView tv = (TextView) findViewById(R.id.textView2);
+
+                        int top = 0;
+                        int temp = 0;
+                        if (mRgba.empty()) Log.i(TAG, "fail");
+                        else Log.i(TAG, "Calculating match");
+                        temp = (detectFeatures(mRgba.getNativeObjAddr(), target.getNativeObjAddr()));
+
+                        tv.setText(String.valueOf(temp));
+                        }
                     }
                 }
             }
-        }
-    }
 
+    }
+    public void SaveImage (Mat mat) {
+        Mat mIntermediateMat = new Mat();
+
+        Imgproc.cvtColor(mRgba, mIntermediateMat, Imgproc.COLOR_RGBA2BGR, 3);
+
+        File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
+        String filename = "barry.jpg";
+        File file = new File(path, filename);
+
+        Boolean bool = null;
+        filename = file.toString();
+        bool = imwrite(filename, mIntermediateMat);
+
+        if (bool == true)
+            Log.d(TAG, "SUCCESS writing image to external storage");
+        else
+            Log.d(TAG, "Fail writing image to external storage");
+    }
 
 
     //Feature match when button is clicked
@@ -251,57 +307,20 @@ public class MainActivity extends AppCompatActivity implements CameraBridgeViewB
         String path = Environment.getExternalStorageDirectory() + "/data/";
         File location = new File(path);
         Log.i(TAG, "this is the dest"+location.getAbsolutePath());
-
+        //SaveImage(mRgba);
         traverse (location);
 
 
 
-        File root = Environment.getExternalStorageDirectory();
-        File file = new File(root, "img3.jpg");
-        Mat m = Imgcodecs.imread(file.getAbsolutePath(), Imgcodecs.CV_LOAD_IMAGE_GRAYSCALE);
-        if (m.empty())
-        {        if (m.empty())Log.i(TAG, "failledd"+file.getAbsolutePath());
 
-        }
 
             // display error message and exit
 
 
 
-        Mat first = new Mat();
-        Mat second = new Mat();
 
-        TextView tv = (TextView) findViewById(R.id.textView2);
-        tv.setText(String.valueOf(latitude)+" "+String.valueOf(longitude));
 
-        if (check) {
-            try {
 
-                second = Utils.loadResource(MainActivity.this, R.drawable.img14, Imgcodecs.CV_LOAD_IMAGE_GRAYSCALE);
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            int top = 0;
-            int temp = 0;
-            for (int i = 0; i < 6; i++) {
-                try {
-
-                    first = Utils.loadResource(MainActivity.this, getResources().getIdentifier("img" + i,"drawable", MainActivity.this.getPackageName()), Imgcodecs.CV_LOAD_IMAGE_GRAYSCALE);
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                if (mRgba.empty()) Log.i(TAG, "fail");
-                else Log.i(TAG, "Mariooo");
-                if (first.empty()) Log.i(TAG, "fail");
-                else Log.i(TAG, "Mariooo2");
-                temp = (detectFeatures(first.getNativeObjAddr(), second.getNativeObjAddr()));
-                if (temp > top) top = temp;
-            }
-            tv.setText(String.valueOf(top));
-
-        }
         check = false;
     }
 }
