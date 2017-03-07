@@ -7,6 +7,7 @@
 using namespace cv;
 using namespace std;
 
+#define PI 3.14159265
 #define  LOG_TAG    "testjni"
 #define  ALOG(...)  __android_log_print(ANDROID_LOG_INFO,LOG_TAG,__VA_ARGS__)
 
@@ -16,9 +17,13 @@ BFMatcher matcher(NORM_HAMMING);
 
 
 float ratio = 0.95f;
+float deltaX;
+float deltaY;
+float angle;
 bool refineF = false;
 double distance = 10.0;
 double confidence = 0.99;
+
 
 int ratioTest(std::vector<std::vector<cv::DMatch> >
               &matches) {
@@ -212,7 +217,101 @@ int toGray(Mat& captured, Mat& target) {
     ransacTest(symMatches,
                keypointsCaptured, keypointsTarget, matches);
     __android_log_print(ANDROID_LOG_INFO, "sometag", "Sym Matches = %d", symMatches.size());
-    __android_log_print(ANDROID_LOG_INFO, "sometag", "Matches = %d", matches.size());
+    __android_log_print(ANDROID_LOG_INFO, "sometag", "Matches before muh shiz= %d", matches.size());
+
+    const int symMatchCount = matches.size();
+
+    //float meanboy;
+    Point2f point1;
+    Point2f point2;
+    float median;
+    float meanBoy=0;
+    float greatest = 0;
+    float lowest = 0;
+    int count = 0;
+    vector<float> angleList;
+    vector<Point2f> point1List;
+    vector<Point2f> point2List;
+
+    for(int i = 0; i < matches.size(); i++)
+    {
+        point1 = keypointsCaptured[matches[i].queryIdx].pt;
+        point2 = keypointsTarget[matches[i].trainIdx].pt;
+        point1List.push_back (point1);
+        point2List.push_back (point2);
+
+        deltaY = ((360-point2.y) - (360-point1.y));
+        deltaX = (point2.x+480 - point1.x);
+
+        angle = atan2 (deltaY, deltaX) * 180 / PI;
+        cout << "ORB Matching Results" << angle <<endl;
+        //if (angle > greatest) greatest = angle;
+        //if (angle < lowest) lowest = angle;
+        meanBoy += angle;
+
+        angleList.push_back (angle);
+        //std::cout << "points " << "(" << point1.x << "," <<360-point1.y<<") (" << point2.x << ","<<360-point2.y<<") angle:" <<angle << std::endl;
+        //std::cout << angle << std::endl;
+
+    }
+    // do something with the best points...
+
+    //std::cout << "Mean" << meanBoy/symMatchCount << std::endl;
+    vector<float> angleLCopy(angleList);
+    std::sort(angleLCopy.begin(), angleLCopy.end());
+    /*		         if(angleList.size() % 2 == 0)
+                             median = (angleList[angleList.size()/2 - 1] + angleList[angleList.size()/2]) / 2;
+                     else
+                             median = angleList[angleList.size()/2];
+                    */
+    size_t medianIndex = angleLCopy.size() / 2;
+    nth_element(angleLCopy.begin(), angleLCopy.begin()+medianIndex, angleLCopy.end());
+    median = angleLCopy[medianIndex];
+    std::cout << "new Median method " << angleLCopy[medianIndex] << std::endl;
+    //std::cout << "greatest " << greatest << "|| lowest "<< lowest << std::endl;
+
+    //std::cout << "No of matches by shehel: " << angleList[35] << " size " << symMatchCount << std::endl;
+    //std::cout << "Median" << median << std::endl;
+    //std::cout << matches.size()<< std::endl;
+    count=0;
+    for(auto i = matches.begin(); i != matches.end();) {
+
+        //std::cout << angleList.at(count)<< std::endl;
+
+        //if (angle > greatest) greatest = angle;
+        //if (angle < lowest) lowest = angle;
+        point1 = point1List.at(count);
+        point2 = point2List.at(count);
+
+        deltaY = ((360 - point2.y) - (360 - point1.y));
+        deltaX = ((point2.x + 480) - point1.x);
+
+        angle = atan2(deltaY, deltaX) * 180 / PI;
+        //angleList.push_back (angle);
+        cout << "Is it sorted? " << angleList.at(count) << endl;
+
+        if (angleList.at(count) > (median + 5) | angleList.at(count) < (median - 5)) {
+            //cout << "bitch is gone" << angleList.at(count) << endl;
+            matches.erase(i);
+            count++;
+
+        }
+            //{i++; count++;}
+        else {
+            cout << "Points A (" << point1.x << ", " << point1.y << ") B (" <<
+            point2.x + 480 << ", " << point2.y << ") Deltas of X" << deltaX << " Y " <<
+            deltaY << "  Angle " << angle << endl;
+            cout << "bitch aint going no where" << angleList.at(count) << endl;
+
+            ++i;
+            count++;
+            //if (angle>0.5 | angle < -0.7)
+            //matches.erase(matches.begin()+i);
+            // do something with the best points...
+        }
+    }
+    __android_log_print(ANDROID_LOG_INFO, "sometag", "Matches after muh shiz= %d", matches.size());
+
     return (matches.size());
 }
 
