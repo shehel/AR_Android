@@ -1,5 +1,5 @@
 # Android Application for Real Time Image Matching in Smartphones.
-Several description algorithms were evaluated for real time performance and matches corrected for accuracy with several tests. 
+Several description algorithms were evaluated for real time performance and matches corrected for accuracy by adding tests for the matches identified by patch descriptors. 
 Image matching algorithm was run as native code with Android NDK and multi-threading. 
 
 
@@ -9,12 +9,12 @@ Image matching algorithm was run as native code with Android NDK and multi-threa
 - Android NDK 
 
 ### Results
-Several tests were applied to fix the numerous greedy matches that occur in vanilla patch description algorithms. The system is also reaonably invariant to viewpoint change. <br>
-Tests include
+Several tests were applied to fix the numerous greedy matches that occur in vanilla patch description algorithms. 
 - RANSAC
 - Ratio check
 - Symmetry check
-- Angle consistency
+- Angle consistency <br>
+The system is also reaonably invariant to viewpoint change. <br>
 <figure>
   <img src="images/performance.png" alt="Algorithms comparison" align="center">
   <figcaption>Accuracy of several patch description algorithms on images of increasing variations. 20 point matches is considered the threshold to be labelled as matched.
