@@ -1,6 +1,6 @@
 # Android Application for Real Time Image Matching in Smartphones.
 Several description algorithms were evaluated for real time performance and matches corrected for accuracy with several tests. 
-Image matching algorithm was run as native code with Android NDK. 
+Image matching algorithm was run as native code with Android NDK and multi-threading. 
 
 
 ### Prerequisites
@@ -26,7 +26,7 @@ Tests include
 </figure> 
 <figure>
   <img src="images/filter.png" alt="Before and after adding tests" width="350" height="500" align="center">
-  <figcaption>Before and after tests we added in a false pair.</figcaption>
+  <figcaption>Before and after tests with a false pair.</figcaption>
 </figure> 
 <figure>
   <img src="images/true.png" alt="A true pair" align="center">
