@@ -15,19 +15,22 @@ Tests include
 - Ratio check
 - Symmetry check
 - Angle consistency
-Accuracy measured for image pairs with increasing viewpoint changes. 20 point matches is considered the threshold to be labelled as matched.
-![Accuracy](images/performance.png)
- <figure>
+<figure>
+  <img src="images/performance.png" alt="Algorithms comparison" align="center">
+  <figcaption>Accuracy of several patch description algorithms on images of increasing variations. 20 point matches is considered the threshold to be labelled as matched.
+</figcaption>
+</figure>  
+<figure>
   <img src="images/time.png" alt="Time taken" width="200" height="250">
-  <figcaption>Fig1. - Time taken for matching 16 pairs.</figcaption>
+  <figcaption>Time taken for matching 16 pairs.</figcaption>
 </figure> 
 <figure>
   <img src="images/filter.png" alt="Before and after adding tests" width="350" height="500" align="center">
-  <figcaption>Fig2. - Before and after tests we added in a false pair.</figcaption>
+  <figcaption>Before and after tests we added in a false pair.</figcaption>
 </figure> 
 <figure>
   <img src="images/true.png" alt="A true pair" align="center">
-  <figcaption>Fig3. - A true positive pair with scale and viewpoint changes after tests.</figcaption>
+  <figcaption>A true positive pair with scale and viewpoint changes after tests.</figcaption>
 </figure> 
 
 
