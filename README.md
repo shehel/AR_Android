@@ -14,7 +14,8 @@ Several tests were applied to fix the numerous greedy matches that occur in vani
 - Ratio check
 - Symmetry check
 - Angle consistency <br>
-The system is also reaonably invariant to viewpoint change. <br>
+
+<p>The system is also reaonably invariant to viewpoint change. <br></p>
 <figure>
   <img src="images/performance.png" alt="Algorithms comparison" align="center">
   <figcaption>Accuracy of several patch description algorithms on images of increasing variations. 20 point matches is considered the threshold to be labelled as matched.
