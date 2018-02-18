@@ -21,7 +21,7 @@ Accuracy measured for image pairs with increasing viewpoint changes. 20 point ma
   <figcaption>Fig2. - Before and after tests we added in a false pair.</figcaption>
 </figure> 
 <figure>
-  <img src="images/true.png" alt="A true pair" width="350" height="500" align="center">
+  <img src="images/true.png" alt="A true pair" align="center">
   <figcaption>Fig3. - A true positive pair with scale and viewpoint changes after tests.</figcaption>
 </figure> 
 
