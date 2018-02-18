@@ -9,7 +9,12 @@ Image matching algorithm was run as native code with Android NDK.
 - Android NDK 
 
 ### Results
-The post matching tests fixes the numerous greedy matches that occur in vanilla patch description algorithms. The system is also reaonably invariant to viewpoint change.
+Several tests were applied to fix the numerous greedy matches that occur in vanilla patch description algorithms. The system is also reaonably invariant to viewpoint change. <br>
+Tests include
+- RANSAC
+- Ratio check
+- Symmetry check
+- Angle consistency
 Accuracy measured for image pairs with increasing viewpoint changes. 20 point matches is considered the threshold to be labelled as matched.
 ![Accuracy](images/performance.png)
  <figure>
