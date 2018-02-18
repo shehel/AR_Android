@@ -12,8 +12,14 @@ Image matching algorithm was run as native code with Android NDK.
 The post matching tests fixes the numerous greedy matches that occur in vanilla patch description algorithms. The system is also reaonably invariant to viewpoint change.
 Accuracy measured for image pairs with increasing viewpoint changes. 20 point matches is considered the threshold to be labelled as matched.
 ![Accuracy](images/performance.png)
-<img src="images/time.png" alt="Time taken" width="200" height="250">
-<img src="images/filter.png" alt="Before and after adding tests" width="600" height="700">
+ <figure>
+  <img src="images/time.png" alt="Time taken" width="200" height="250">
+  <figcaption>Fig1. - Time taken for matching 16 pairs.</figcaption>
+</figure> 
+<figure>
+  <img src="images/filter.png" alt="Before and after adding tests" width="350" height="500" align="center">
+  <figcaption>Fig2. - Before and after tests we added in a false pair.</figcaption>
+</figure> 
 ![A true match](images/true.png)
 
 
